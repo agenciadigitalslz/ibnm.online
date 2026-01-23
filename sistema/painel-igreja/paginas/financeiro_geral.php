@@ -81,15 +81,7 @@ function moeda($v){ return 'R$ '.number_format($v, 2, ',', '.'); }
   </div>
 </div>
 
-<style>
-.fin-cards{display:flex;flex-wrap:wrap;gap:10px}
-.fin-card{flex:1 1 180px;min-width:160px;max-width:calc(20% - 10px);border-radius:10px}
-.fin-card .card-body h5{font-size:1.25rem;word-break:break-word;white-space:normal;overflow-wrap:anywhere}
-@media(max-width:1200px){.fin-card{max-width:calc(25% - 10px)}}
-@media(max-width:992px){.fin-card{max-width:calc(33.33% - 10px)}}
-@media(max-width:768px){.fin-card{max-width:calc(50% - 10px)}}
-@media(max-width:480px){.fin-card{max-width:100%}}
-</style>
+<link rel="stylesheet" href="paginas/css/financeiro.css">
 <h5 class="mt-2 mb-2">Recebimentos</h5>
 <div class="fin-cards" style="margin-bottom:10px">
   <div class="card text-center mb-3 fin-card">

@@ -13,6 +13,7 @@ sistema/conexao.php
 mcp-mysql-local.json
 .ftpquota
 MySQL.md
+nul
 
 # ==============================================================================
 # LOGS E ARQUIVOS DE ERRO
@@ -105,3 +106,9 @@ phpinfo.php
 # (Nota: docs/ é versionado, apenas temporários são ignorados)
 *.md.bak
 *.md.tmp
+
+# ==============================================================================
+# PACOTES DE UPDATE (DEPLOY VIA FTP)
+# ==============================================================================
+Update_v*/
+pack_update_*/

@@ -374,6 +374,85 @@ security(auth): implementa rate limiting em apiIgreja/login
 style(ui): melhora responsividade dos cards financeiros
 ```
 
+## 📦 PACK_UPDATE — Sistema de Deploy
+
+### 🎯 Propósito
+Sistema de versionamento de atualizações para deploy via FTP/cPanel. Cada pacote contém apenas os arquivos modificados, mantendo a estrutura de pastas do servidor.
+
+### 📁 Estrutura do Pacote
+```
+Update_vXXX/
+├── sistema/
+│   └── painel-igreja/
+│       └── paginas/
+│           └── [arquivos modificados]
+├── apiIgreja/
+│   └── [arquivos modificados]
+└── LEIAME_DEPLOY.txt
+```
+
+### 📋 Formato do LEIAME_DEPLOY.txt
+```
+================================================================================
+                         UPDATE vXXX - SaaS Igrejas
+                              Data: YYYY-MM-DD
+================================================================================
+
+DESCRICAO DO UPDATE
+-------------------
+[Descrição clara das alterações realizadas]
+
+ARQUIVOS INCLUIDOS
+------------------
+[MODIFIED] caminho/arquivo.php - Descrição da modificação
+[NEW] caminho/novo_arquivo.php - Descrição do novo arquivo
+[DELETED] caminho/arquivo.php - (instruir remoção manual)
+
+INSTRUCOES DE DEPLOY
+--------------------
+1. Fazer backup do servidor antes de iniciar
+2. Conectar ao cPanel via FTP
+3. Navegar até a pasta raiz do site
+4. Fazer upload mantendo a estrutura de pastas
+5. Sobrescrever arquivos existentes quando solicitado
+6. Limpar cache do navegador e testar
+
+ALTERACOES NO BANCO DE DADOS
+----------------------------
+[Nenhuma / Scripts SQL a executar]
+
+STATUS DE TESTES
+----------------
+[x] Testado em localhost - OK
+[x] Funcionalidade principal - OK
+[ ] Teste em produção - Pendente
+
+OBSERVACOES
+-----------
+[Notas adicionais sobre o deploy]
+================================================================================
+```
+
+### 🔄 Workflow de Update
+1. **Desenvolvimento**: Implementar alteração em localhost
+2. **Teste**: Validar funcionalidade e aprovação do usuário
+3. **Pacote**: Criar `Update_vXXX/` com arquivos modificados
+4. **Documentar**: Gerar `LEIAME_DEPLOY.txt` detalhado
+5. **Deploy**: Upload via FTP seguindo instruções
+6. **Validar**: Testar em produção e confirmar
+
+### 📊 Versionamento
+- `Update_v001`: Primeira atualização
+- `Update_v002`: Segunda atualização
+- Formato: `Update_vXXX` (XXX = número sequencial com 3 dígitos)
+
+### ⚠️ Regras Importantes
+- **SEMPRE** fazer backup antes do deploy
+- **NUNCA** incluir `conexao.php` ou arquivos sensíveis
+- **SEMPRE** testar em localhost antes de criar pacote
+- **SEMPRE** documentar todas as alterações no LEIAME
+- **MANTER** estrutura de pastas idêntica ao servidor
+
 ## 📊 Status Atual do Projeto (v6.05)
 
 ### ✅ Implementado

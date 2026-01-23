@@ -1,4 +1,4 @@
-<?php 
+<?php
 @session_start();
 $id_igreja = $_SESSION['id_igreja'];
 $mostrar_registros = @$_SESSION['registros'];
@@ -7,11 +7,8 @@ $tabela = 'receber';
 require_once("../../../conexao.php");
 require_once("../../verificar.php");
 
-if($mostrar_registros == 'Não'){	
-	$sql_usuario_lanc = " and usuario_lanc = '$id_usuario '";
-}else{	
-	$sql_usuario_lanc = " ";
-}
+// Flag para filtro de usuario
+$filtrar_por_usuario = ($mostrar_registros == 'Não');
 
 $data_hoje = date('Y-m-d');
 $data_atual = date('Y-m-d');
@@ -48,13 +45,14 @@ $dataInicial = @$_POST['p2'];
 $dataFinal   = @$_POST['p3'];
 $filtro      = @$_POST['p1'];
 $tipo_data   = @$_POST['p4'];
-// Monta filtro de usuário respeitando "mostrar_registros"
-$sql_usuario_lanc = '';
-if($mostrar_registros == 'Não'){
-  $sql_usuario_lanc .= " and usuario_lanc = '$id_usuario'";
-}
 
 if($tipo_data == ""){
+	$tipo_data = 'vencimento';
+}
+
+// Validar tipo_data para evitar SQL Injection (whitelist)
+$tipos_data_permitidos = ['vencimento', 'data_pgto', 'data_lanc'];
+if(!in_array($tipo_data, $tipos_data_permitidos)){
 	$tipo_data = 'vencimento';
 }
 
@@ -85,111 +83,121 @@ $total_pendentF = 0;
 
 
 
-//PEGAR O TOTAL DAS CONTAS A PAGAR PENDENTES
-$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' and pago = 'Não' $sql_usuario_lanc");
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
-$total_reg = @count($res);
-if($total_reg > 0){
-	for($i=0; $i < $total_reg; $i++){
-	foreach ($res[$i] as $key => $value){}
-		$total_valor += $res[$i]['valor'];
-		$total_valorF = @number_format($total_valor, 2, ',', '.');
-}}
-if($total_reg == 0){ $total_valorF = @number_format(0, 2, ',', '.'); }
+//PEGAR O TOTAL DAS CONTAS PENDENTES (usando SUM para performance)
+$sql_pendentes = "SELECT COALESCE(SUM(valor), 0) as total FROM $tabela WHERE igreja = ? AND pago = 'Não'";
+$params_pendentes = [$id_igreja];
+if($filtrar_por_usuario){
+	$sql_pendentes .= " AND usuario_lanc = ?";
+	$params_pendentes[] = $id_usuario;
+}
+$query = $pdo->prepare($sql_pendentes);
+$query->execute($params_pendentes);
+$total_valor = $query->fetchColumn();
+$total_valorF = @number_format($total_valor, 2, ',', '.');
 
-//PEGAR O TOTAL DAS CONTAS A PAGAR PENDENTES
-$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' and pago = 'Não' $sql_usuario_lanc");
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
-$total_reg = @count($res);
-if($total_reg > 0){
-	for($i=0; $i < $total_reg; $i++){
-	foreach ($res[$i] as $key => $value){}
-		$total_pendent += $res[$i]['valor'];
-		$total_pendentF = @number_format($total_pendent, 2, ',', '.');
-}}
-if($total_reg == 0){ $total_pendentF = @number_format(0, 2, ',', '.'); }
+// Total pendentes (mesmo valor)
+$total_pendent = $total_valor;
+$total_pendentF = $total_valorF;
 
-//PEGAR O TOTAL DAS CONTAS A PAGAR (respeita filtro de usuário)
-$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' $sql_usuario_lanc");
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
-$total_reg = @count($res);
-if($total_reg > 0){
-	for($i=0; $i < $total_reg; $i++){
-	foreach ($res[$i] as $key => $value){}
-		$total_total += $res[$i]['valor'];
-		$total_totalF = @number_format($total_total, 2, ',', '.');
-}}
-if($total_reg == 0){ $total_totalF = @number_format(0, 2, ',', '.'); }
+//PEGAR O TOTAL DE TODAS AS CONTAS
+$sql_total = "SELECT COALESCE(SUM(valor), 0) as total FROM $tabela WHERE igreja = ?";
+$params_total = [$id_igreja];
+if($filtrar_por_usuario){
+	$sql_total .= " AND usuario_lanc = ?";
+	$params_total[] = $id_usuario;
+}
+$query = $pdo->prepare($sql_total);
+$query->execute($params_total);
+$total_total = $query->fetchColumn();
+$total_totalF = @number_format($total_total, 2, ',', '.');
 
+//PEGAR O TOTAL DAS CONTAS VENCIDAS
+$sql_vencidas = "SELECT COALESCE(SUM(valor), 0) as total FROM $tabela WHERE igreja = ? AND vencimento < CURDATE() AND pago = 'Não'";
+$params_vencidas = [$id_igreja];
+if($filtrar_por_usuario){
+	$sql_vencidas .= " AND usuario_lanc = ?";
+	$params_vencidas[] = $id_usuario;
+}
+$query = $pdo->prepare($sql_vencidas);
+$query->execute($params_vencidas);
+$total_vencidas = $query->fetchColumn();
+$total_vencidasF = @number_format($total_vencidas, 2, ',', '.');
 
-//PEGAR O TOTAL DAS CONTAS A PAGAR PEDENTES
-$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' and vencimento < curDate() and pago = 'Não' $sql_usuario_lanc");
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
-$total_reg = @count($res);
-if($total_reg > 0){
-	for($i=0; $i < $total_reg; $i++){
-	foreach ($res[$i] as $key => $value){}
-		$total_vencidas += $res[$i]['valor'];
-		$total_vencidasF = @number_format($total_vencidas, 2, ',', '.');
-}}
+//PEGAR O TOTAL DAS CONTAS QUE VENCEM HOJE
+$sql_hoje = "SELECT COALESCE(SUM(valor), 0) as total FROM $tabela WHERE igreja = ? AND vencimento = CURDATE() AND pago = 'Não'";
+$params_hoje = [$id_igreja];
+if($filtrar_por_usuario){
+	$sql_hoje .= " AND usuario_lanc = ?";
+	$params_hoje[] = $id_usuario;
+}
+$query = $pdo->prepare($sql_hoje);
+$query->execute($params_hoje);
+$total_hoje = $query->fetchColumn();
+$total_hojeF = @number_format($total_hoje, 2, ',', '.');
 
-//PEGAR O TOTAL DAS CONTAS A PAGAR QUE VENCE HOJE
-$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' and vencimento = curDate() and pago = 'Não' $sql_usuario_lanc");
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
-$total_am = @count($res);
-if($total_am > 0){
-	for($i=0; $i < $total_am; $i++){
-	foreach ($res[$i] as $key => $value){}
-		$total_hoje += $res[$i]['valor'];
-		$total_hojeF = @number_format($total_hoje, 2, ',', '.');
-}}
-
-
-//PEGAR O TOTAL DAS CONTAS A PAGAR RECEBIDAS
-$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' and pago = 'Sim' $sql_usuario_lanc");
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
-$total_pg = @count($res);
-if($total_pg > 0){
-	for($i=0; $i < $total_pg; $i++){
-	foreach ($res[$i] as $key => $value){}
-		$total_recebidas += $res[$i]['valor'];
-		$total_recebidasF = @number_format($total_recebidas, 2, ',', '.');
-}}
-
-
+//PEGAR O TOTAL DAS CONTAS RECEBIDAS
+$sql_recebidas = "SELECT COALESCE(SUM(valor), 0) as total FROM $tabela WHERE igreja = ? AND pago = 'Sim'";
+$params_recebidas = [$id_igreja];
+if($filtrar_por_usuario){
+	$sql_recebidas .= " AND usuario_lanc = ?";
+	$params_recebidas[] = $id_usuario;
+}
+$query = $pdo->prepare($sql_recebidas);
+$query->execute($params_recebidas);
+$total_recebidas = $query->fetchColumn();
+$total_recebidasF = @number_format($total_recebidas, 2, ',', '.');
 
 $data_hoje = date('Y-m-d');
-$data_amanha = date('Y/m/d', @strtotime("+1 days",@strtotime($data_hoje)));
+$data_amanha = date('Y-m-d', @strtotime("+1 days",@strtotime($data_hoje)));
+
+//PEGAR O TOTAL DAS CONTAS QUE VENCEM AMANHÃ
+$sql_amanha = "SELECT COALESCE(SUM(valor), 0) as total FROM $tabela WHERE igreja = ? AND vencimento = ? AND pago = 'Não'";
+$params_amanha = [$id_igreja, $data_amanha];
+if($filtrar_por_usuario){
+	$sql_amanha .= " AND usuario_lanc = ?";
+	$params_amanha[] = $id_usuario;
+}
+$query = $pdo->prepare($sql_amanha);
+$query->execute($params_amanha);
+$total_amanha = $query->fetchColumn();
+$total_amanhaF = @number_format($total_amanha, 2, ',', '.');
 
 
-//PEGAR O TOTAL DAS CONTAS A PAGAR QUE VENCE AMANHÃ
-$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' and vencimento = '$data_amanha' and pago = 'Não' $sql_usuario_lanc");
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
-$total_am = @count($res);
-if($total_am > 0){
-	for($i=0; $i < $total_am; $i++){
-	foreach ($res[$i] as $key => $value){}
-		$total_amanha += $res[$i]['valor'];
-		$total_amanhaF = @number_format($total_amanha, 2, ',', '.');
-}}
 
-
+// Preparar query com filtros seguros
+$sql_base = "SELECT * FROM $tabela WHERE igreja = ?";
+$params_lista = [$id_igreja];
 
 if($filtro == 'Vencidas'){
-	$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' and vencimento < curDate() and pago = 'Não' $sql_usuario_lanc order by id desc ");
+	$sql_base .= " AND vencimento < CURDATE() AND pago = 'Não'";
 }else if($filtro == 'Recebidas'){
-	$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' and pago = 'Sim' $sql_usuario_lanc order by id desc ");
+	$sql_base .= " AND pago = 'Sim'";
 }else if($filtro == 'Pendentes'){
-	$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' and pago = 'Não' $sql_usuario_lanc order by id desc ");	
+	$sql_base .= " AND pago = 'Não'";
 }else if($filtro == 'Hoje'){
-	$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' and vencimento = curDate() and pago = 'Não' $sql_usuario_lanc order by id desc ");
+	$sql_base .= " AND vencimento = CURDATE() AND pago = 'Não'";
 }else if($filtro == 'Amanha'){
-	$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' and vencimento = '$data_amanha' and pago = 'Não' $sql_usuario_lanc order by id desc ");
+	$sql_base .= " AND vencimento = ? AND pago = 'Não'";
+	$params_lista[] = $data_amanha;
 }else if($filtro == 'Todas'){
-	$query = $pdo->query("SELECT * from $tabela where igreja = '$id_igreja' $sql_usuario_lanc order by id desc ");
+	// Sem filtro adicional
 }else{
-	$query = $pdo->query("SELECT * from $tabela WHERE igreja = '$id_igreja' and $tipo_data >= '$dataInicial' and $tipo_data <= '$dataFinal' $sql_usuario_lanc order by id desc ");
+	// Filtro por periodo - tipo_data ja foi validado via whitelist
+	$sql_base .= " AND $tipo_data >= ? AND $tipo_data <= ?";
+	$params_lista[] = $dataInicial;
+	$params_lista[] = $dataFinal;
 }
+
+// Adicionar filtro de usuario se necessario
+if($filtrar_por_usuario){
+	$sql_base .= " AND usuario_lanc = ?";
+	$params_lista[] = $id_usuario;
+}
+
+$sql_base .= " ORDER BY id DESC";
+
+$query = $pdo->prepare($sql_base);
+$query->execute($params_lista);
 
 
 
@@ -278,50 +286,36 @@ if($ext == 'pdf' || $ext == 'PDF'){
 	
 	
 
-$query2 = $pdo->query("SELECT * FROM usuarios where id = '$usuario_lanc'");
-$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-if(@count($res2) > 0){
-	$nome_usu_lanc = $res2[0]['nome'];
-}else{
-	$nome_usu_lanc = 'Sem Usuário';
-}
+$query2 = $pdo->prepare("SELECT nome FROM usuarios WHERE id = ?");
+$query2->execute([$usuario_lanc]);
+$res2 = $query2->fetch(PDO::FETCH_ASSOC);
+$nome_usu_lanc = $res2 ? $res2['nome'] : 'Sem Usuário';
 
+$query2 = $pdo->prepare("SELECT nome FROM usuarios WHERE id = ?");
+$query2->execute([$usuario_pgto]);
+$res2 = $query2->fetch(PDO::FETCH_ASSOC);
+$nome_usu_pgto = $res2 ? $res2['nome'] : 'Sem Usuário';
 
-$query2 = $pdo->query("SELECT * FROM usuarios where id = '$usuario_pgto'");
-$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-if(@count($res2) > 0){
-	$nome_usu_pgto = $res2[0]['nome'];
-}else{
-	$nome_usu_pgto = 'Sem Usuário';
-}
+$query2 = $pdo->prepare("SELECT frequencia FROM frequencias WHERE dias = ?");
+$query2->execute([$frequencia]);
+$res2 = $query2->fetch(PDO::FETCH_ASSOC);
+$nome_frequencia = $res2 ? $res2['frequencia'] : 'Sem Registro';
 
-
-$query2 = $pdo->query("SELECT * FROM frequencias where dias = '$frequencia'");
-$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-if(@count($res2) > 0){
-	$nome_frequencia = $res2[0]['frequencia'];
-}else{
-	$nome_frequencia = 'Sem Registro';
-}
-
-$query2 = $pdo->query("SELECT * FROM formas_pgto where id = '$forma_pgto'");
-$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-if(@count($res2) > 0){
-	$nome_pgto = $res2[0]['nome'];
-	$taxa_pgto = $res2[0]['taxa'];
+$query2 = $pdo->prepare("SELECT nome, taxa FROM formas_pgto WHERE id = ?");
+$query2->execute([$forma_pgto]);
+$res2 = $query2->fetch(PDO::FETCH_ASSOC);
+if($res2){
+	$nome_pgto = $res2['nome'];
+	$taxa_pgto = $res2['taxa'];
 }else{
 	$nome_pgto = 'Sem Registro';
 	$taxa_pgto = 0;
 }
 
-
-$query2 = $pdo->query("SELECT * FROM membros where id = '$membro'");
-$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-if(@count($res2) > 0){
-	$nome_membro = $res2[0]['nome'];
-}else{
-	$nome_membro = 'Sem Registro';
-}
+$query2 = $pdo->prepare("SELECT nome FROM membros WHERE id = ? AND igreja = ?");
+$query2->execute([$membro, $id_igreja]);
+$res2 = $query2->fetch(PDO::FETCH_ASSOC);
+$nome_membro = $res2 ? $res2['nome'] : 'Sem Registro';
 
 
 if($pago == 'Sim'){
@@ -361,19 +355,16 @@ $taxa_conta = $taxa_pgto * $valor / 100;
 //PEGAR RESIDUOS DA CONTA
 	$total_resid = 0;
 	$valor_com_residuos = 0;
-	$query2 = $pdo->query("SELECT * FROM receber WHERE igreja = '$id_igreja' and id_ref = '$id' and residuo = 'Sim'");
+	$query2 = $pdo->prepare("SELECT id, valor, desconto FROM receber WHERE igreja = ? AND id_ref = ? AND residuo = 'Sim'");
+	$query2->execute([$id_igreja, $id]);
 	$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-	if(@count($res2) > 0){
+	if(count($res2) > 0){
 
 		$descricao = '(Resíduo) - ' .$descricao;
 
-		for($i2=0; $i2 < @count($res2); $i2++){
-			foreach ($res2[$i2] as $key => $value){} 
-				$id_res = $res2[$i2]['id'];
-			$valor_resid = $res2[$i2]['valor'];
-			$total_resid += $valor_resid - $res2[$i2]['desconto'];
+		foreach($res2 as $residuo){
+			$total_resid += $residuo['valor'] - $residuo['desconto'];
 		}
-
 
 		$valor_com_residuos = $valor + $total_resid;
 	}

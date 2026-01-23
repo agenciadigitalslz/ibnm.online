@@ -1,9 +1,10 @@
-<?php 
+<?php
+require_once("verificar.php");
 $pag = 'fechamentos';
 
-if(@$cargos == 'ocultar'){
-	echo "<script>window.location='../index.php'</script>";
-    exit();
+if(@$fechamentos == 'ocultar'){
+	echo "<script>window.location='index'</script>";
+	exit();
 }
 
  ?>

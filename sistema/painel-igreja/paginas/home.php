@@ -239,6 +239,101 @@ if(@$home == 'ocultar'){
 
 <div class="mt-4 justify-content-between">
 
+<?php
+// Notificacoes de contas em atraso e pendentes
+$tem_notificacao = false;
+
+// Contas a PAGAR vencidas
+$rowPagarVenc = $pdo->prepare("SELECT COUNT(*) AS cnt, COALESCE(SUM(valor),0) AS total FROM pagar WHERE vencimento < CURDATE() AND pago != 'Sim' AND igreja = ?");
+$rowPagarVenc->execute([$id_igreja]);
+$pagarVenc = $rowPagarVenc->fetch(PDO::FETCH_ASSOC);
+$qtd_pagar_venc = (int)($pagarVenc['cnt'] ?? 0);
+$total_pagar_venc = number_format((float)($pagarVenc['total'] ?? 0), 2, ',', '.');
+
+// Contas a RECEBER vencidas
+$rowReceberVenc = $pdo->prepare("SELECT COUNT(*) AS cnt, COALESCE(SUM(valor),0) AS total FROM receber WHERE vencimento < CURDATE() AND pago != 'Sim' AND igreja = ?");
+$rowReceberVenc->execute([$id_igreja]);
+$receberVenc = $rowReceberVenc->fetch(PDO::FETCH_ASSOC);
+$qtd_receber_venc = (int)($receberVenc['cnt'] ?? 0);
+$total_receber_venc = number_format((float)($receberVenc['total'] ?? 0), 2, ',', '.');
+
+// Contas que vencem HOJE
+$rowPagarHoje = $pdo->prepare("SELECT COUNT(*) AS cnt, COALESCE(SUM(valor),0) AS total FROM pagar WHERE vencimento = CURDATE() AND pago != 'Sim' AND igreja = ?");
+$rowPagarHoje->execute([$id_igreja]);
+$pagarHoje = $rowPagarHoje->fetch(PDO::FETCH_ASSOC);
+$qtd_pagar_hoje = (int)($pagarHoje['cnt'] ?? 0);
+$total_pagar_hoje_notif = number_format((float)($pagarHoje['total'] ?? 0), 2, ',', '.');
+
+$rowReceberHoje = $pdo->prepare("SELECT COUNT(*) AS cnt, COALESCE(SUM(valor),0) AS total FROM receber WHERE vencimento = CURDATE() AND pago != 'Sim' AND igreja = ?");
+$rowReceberHoje->execute([$id_igreja]);
+$receberHoje = $rowReceberHoje->fetch(PDO::FETCH_ASSOC);
+$qtd_receber_hoje = (int)($receberHoje['cnt'] ?? 0);
+$total_receber_hoje_notif = number_format((float)($receberHoje['total'] ?? 0), 2, ',', '.');
+
+if($qtd_pagar_venc > 0 || $qtd_receber_venc > 0 || $qtd_pagar_hoje > 0 || $qtd_receber_hoje > 0){
+	$tem_notificacao = true;
+}
+?>
+
+<?php if($tem_notificacao): ?>
+<div class="row m-2 mb-3">
+	<?php if($qtd_pagar_venc > 0): ?>
+	<div class="col-xl-6 col-lg-6 col-md-6 col-12 mb-2">
+		<div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert" style="margin-bottom:0">
+			<i class="fe fe-alert-triangle me-2" style="font-size:24px"></i>
+			<div style="flex:1">
+				<strong>Contas a Pagar Vencidas!</strong><br>
+				<small><?php echo $qtd_pagar_venc ?> conta(s) vencida(s) totalizando <b>R$ <?php echo $total_pagar_venc ?></b></small>
+			</div>
+			<a href="pagar" class="btn btn-sm btn-outline-danger ms-2">Ver Contas</a>
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+	</div>
+	<?php endif; ?>
+
+	<?php if($qtd_receber_venc > 0): ?>
+	<div class="col-xl-6 col-lg-6 col-md-6 col-12 mb-2">
+		<div class="alert alert-warning alert-dismissible fade show d-flex align-items-center" role="alert" style="margin-bottom:0">
+			<i class="fe fe-alert-circle me-2" style="font-size:24px"></i>
+			<div style="flex:1">
+				<strong>Contas a Receber Vencidas!</strong><br>
+				<small><?php echo $qtd_receber_venc ?> conta(s) vencida(s) totalizando <b>R$ <?php echo $total_receber_venc ?></b></small>
+			</div>
+			<a href="receber" class="btn btn-sm btn-outline-warning ms-2">Ver Contas</a>
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+	</div>
+	<?php endif; ?>
+
+	<?php if($qtd_pagar_hoje > 0): ?>
+	<div class="col-xl-6 col-lg-6 col-md-6 col-12 mb-2">
+		<div class="alert alert-info alert-dismissible fade show d-flex align-items-center" role="alert" style="margin-bottom:0">
+			<i class="fe fe-clock me-2" style="font-size:24px"></i>
+			<div style="flex:1">
+				<strong>Contas a Pagar Vencem Hoje!</strong><br>
+				<small><?php echo $qtd_pagar_hoje ?> conta(s) vence(m) hoje totalizando <b>R$ <?php echo $total_pagar_hoje_notif ?></b></small>
+			</div>
+			<a href="pagar" class="btn btn-sm btn-outline-info ms-2">Ver Contas</a>
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+	</div>
+	<?php endif; ?>
+
+	<?php if($qtd_receber_hoje > 0): ?>
+	<div class="col-xl-6 col-lg-6 col-md-6 col-12 mb-2">
+		<div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert" style="margin-bottom:0">
+			<i class="fe fe-dollar-sign me-2" style="font-size:24px"></i>
+			<div style="flex:1">
+				<strong>Contas a Receber Vencem Hoje!</strong><br>
+				<small><?php echo $qtd_receber_hoje ?> conta(s) vence(m) hoje totalizando <b>R$ <?php echo $total_receber_hoje_notif ?></b></small>
+			</div>
+			<a href="receber" class="btn btn-sm btn-outline-success ms-2">Ver Contas</a>
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+	</div>
+	<?php endif; ?>
+</div>
+<?php endif; ?>
 
 <div style="margin-top: 30px;">
 		

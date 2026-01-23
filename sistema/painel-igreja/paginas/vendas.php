@@ -1,8 +1,9 @@
-<?php 
+<?php
+require_once("verificar.php");
 $pag = 'vendas';
 
-if(@$cargos == 'ocultar'){
-	echo "<script>window.location='../index.php'</script>";
+if(@$vendas == 'ocultar'){
+	echo "<script>window.location='index'</script>";
 	exit();
 }
 

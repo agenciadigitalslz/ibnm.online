@@ -1,8 +1,9 @@
-<?php 
+<?php
+require_once("verificar.php");
 $pag = 'dizimos';
 
-if(@$cargos == 'ocultar'){
-	echo "<script>window.location='../index.php'</script>";
+if(@$dizimos == 'ocultar'){
+	echo "<script>window.location='index'</script>";
 	exit();
 }
 
@@ -75,27 +76,17 @@ if(@$cargos == 'ocultar'){
 							<label>Membro</label>
 							<select class="form-select sel2" id="membro" name="membro" style="width: 100%;">
 								<option value="0">Selecionar Membro</option>
-								<?php 
-								$query = $pdo->query("SELECT * FROM membros where igreja = '$id_igreja' order by id asc");
-								$res = $query->fetchAll(PDO::FETCH_ASSOC);
-								$total_reg = count($res);
-								if($total_reg > 0){
-
-									for($i=0; $i < $total_reg; $i++){
-										foreach ($res[$i] as $key => $value){} 
-
-											$nome_reg = $res[$i]['nome'];
-										$cargo = $res[$i]['cargo'];
-										$id_reg = $res[$i]['id'];
-
-										$query_con = $pdo->query("SELECT * FROM cargos where id = '$cargo'");
-										$res_con = $query_con->fetchAll(PDO::FETCH_ASSOC);
-										$nome_cargo = $res_con[0]['nome'];
-
-										?>
-										<option value="<?php echo $id_reg ?>"><?php echo $nome_reg .' - '.$nome_cargo ?></option>
-
-									<?php }} ?>
+								<?php
+								$query = $pdo->prepare("SELECT m.id, m.nome, COALESCE(c.nome, 'Sem Cargo') as nome_cargo
+									FROM membros m
+									LEFT JOIN cargos c ON m.cargo = c.id
+									WHERE m.igreja = ?
+									ORDER BY m.nome ASC");
+								$query->execute([$id_igreja]);
+								$membros = $query->fetchAll(PDO::FETCH_ASSOC);
+								foreach($membros as $m): ?>
+									<option value="<?php echo $m['id'] ?>"><?php echo htmlspecialchars($m['nome'] . ' - ' . $m['nome_cargo']) ?></option>
+								<?php endforeach; ?>
 								</select>
 
 							</div>

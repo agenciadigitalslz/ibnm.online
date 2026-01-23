@@ -1,0 +1,127 @@
+/**
+ * Financeiro CSS - Estilos centralizados para o modulo financeiro
+ * Usado por: receber.php, pagar.php, financeiro_geral.php
+ * Criado em: 2026-01-23 - Sprint 3
+ */
+
+/* Cards do dashboard financeiro */
+.fin-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.fin-cards .card {
+    flex: 1 1 180px;
+    min-width: 160px;
+    max-width: calc(33.33% - 10px);
+    height: auto !important;
+    width: auto !important;
+}
+
+.fin-cards .card .card-body h4 {
+    font-size: 1.25rem;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    margin: 0;
+}
+
+.fin-cards .card .card-header {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fin-cards .card .card-body h4 span {
+    display: inline-block;
+    max-width: 100%;
+}
+
+/* Diminui numero quando muitos digitos */
+.fin-cards .card .card-body h4.auto-shrink {
+    font-size: 1.1rem;
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+    .fin-cards .card .card-body h4 {
+        font-size: 1.15rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .fin-cards .card {
+        max-width: calc(50% - 10px);
+    }
+    .fin-cards .card .card-body h4 {
+        font-size: 1.05rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .fin-cards .card {
+        max-width: 100%;
+    }
+    .fin-cards .card .card-body h4 {
+        font-size: 1rem;
+    }
+}
+
+/* Cores de status */
+.verde {
+    color: #2b7a00;
+}
+
+.text-verde {
+    color: #2b7a00;
+}
+
+/* Card de conta individual - usado em financeiro_geral.php */
+.fin-card {
+    flex: 1 1 180px;
+    min-width: 160px;
+    max-width: calc(20% - 10px);
+    border-radius: 10px;
+    transition: transform 0.2s ease;
+}
+
+.fin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.fin-card .card-body h5 {
+    font-size: 1.25rem;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 1200px) {
+    .fin-card {
+        max-width: calc(25% - 10px);
+    }
+}
+
+@media (max-width: 992px) {
+    .fin-card {
+        max-width: calc(33.33% - 10px);
+    }
+}
+
+@media (max-width: 768px) {
+    .fin-card {
+        max-width: calc(50% - 10px);
+    }
+}
+
+@media (max-width: 480px) {
+    .fin-card {
+        max-width: 100%;
+    }
+}
+
+/* Estilos do modal de dados */
+.w_150 {
+    width: 150px;
+}
