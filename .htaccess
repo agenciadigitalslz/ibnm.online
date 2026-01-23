@@ -1,0 +1,19 @@
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Coloca as rotas específicas primeiro
+RewriteRule ^filtrar-(.*)$ filtrar.php?pagina=$1 [L]
+RewriteRule ^eventos-(.*)$ eventos.php?pagina=$1 [L]
+RewriteRule ^pregacoes-(.*)$ pregacoes.php?pagina=$1 [L]
+RewriteRule ^membro(.*)$ membro.php [L]
+RewriteRule ^eventos(.*)$ eventos.php [L]
+
+# Rota genérica para `igreja.php`, ignorando URLs que comecem com "evento-" ou "membro"
+RewriteCond %{REQUEST_URI} !^/filtrar-
+RewriteCond %{REQUEST_URI} !^/eventos-
+RewriteCond %{REQUEST_URI} !^/pregacoes-
+RewriteCond %{REQUEST_URI} !^/evento-
+RewriteCond %{REQUEST_URI} !^/membro
+
+RewriteRule ^([a-zA-Z0-9_-]+)$ igreja.php?nome=$1 [L,QSA]

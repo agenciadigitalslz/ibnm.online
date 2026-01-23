@@ -1,0 +1,15 @@
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule ^usuarios(.*)$ index.php?pagina=usuarios [L]
+RewriteRule ^grupo_acessos(.*)$ index.php?pagina=grupo_acessos [L]
+RewriteRule ^acessos(.*)$ index.php?pagina=acessos [L]
+
+RewriteRule ^tarefas(.*)$ index.php?pagina=tarefas [L]
+RewriteRule ^igreja(.*)$ index.php?pagina=igrejas [L]
+RewriteRule ^pastores(.*)$ index.php?pagina=pastores [L]
+RewriteRule ^cargos(.*)$ index.php?pagina=cargos [L]
+RewriteRule ^anexos(.*)$ index.php?pagina=anexos [L]
+RewriteRule ^patrimonios(.*)$ index.php?pagina=patrimonios [L]
+RewriteRule ^site(.*)$ index.php?pagina=site [L]

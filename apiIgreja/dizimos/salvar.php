@@ -1,0 +1,54 @@
+<?php 
+
+require_once("../conexao.php");
+
+$postjson = json_decode(file_get_contents('php://input'), true);
+$id_usuario = @$postjson['user'];
+$id = @$postjson['id'];
+$membro = @$postjson['membro'];
+$valor = @$postjson['valor'];
+$data = @$postjson['vencimento'];
+$igreja = @$postjson['igreja'];
+$valor = str_replace(',', '.', $valor);
+
+	
+$query_con = $pdo->query("SELECT * FROM membros where id = '$membro'");
+$res_con = $query_con->fetchAll(PDO::FETCH_ASSOC);
+if(count($res_con) > 0){
+	$nome_membro = $res_con[0]['nome'];
+}else{
+	$nome_membro = 'Membro Não Informado';
+}
+
+
+if($id == "" || $id == 0){
+	$query = $pdo->prepare("INSERT INTO dizimos SET membro = '$membro', valor = :valor, data = '$data', usuario = '$id_usuario', igreja = '$igreja'");
+
+	$query->bindValue(":valor", "$valor");
+	$query->execute();
+	$ult_id = $pdo->lastInsertId();
+
+	//INSIRO NAS MOVIMENTACOES
+$pdo->query("INSERT INTO movimentacoes SET tipo = 'Entrada', movimento = 'Dízimo', descricao = '$nome_membro', valor = '$valor', data = '$data', usuario = '$id_usuario', id_mov = '$ult_id', igreja = '$igreja'");
+
+}else{
+	
+	$query = $pdo->prepare("UPDATE dizimos SET membro = '$membro', valor = :valor, data = '$data', usuario = '$id_usuario', igreja = '$igreja' where id = '$id'");
+
+	//INSIRO NAS MOVIMENTACOES
+$pdo->query("UPDATE movimentacoes SET descricao = '$nome_membro', valor = '$valor', data = '$data', usuario = '$id_usuario' where id_mov = '$id' and movimento = 'Dízimo'");
+
+
+$query->bindValue(":valor", "$valor");
+$query->execute();
+
+}
+
+
+
+
+$result = json_encode(array('mensagem'=>'Salvo com sucesso!', 'sucesso'=>true));
+
+echo $result;
+
+?>
