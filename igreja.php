@@ -742,66 +742,35 @@ if($total_reg > 0) {
           ease: "power2.out"
         });
       });
-      // Animação dos cards de planos
-      gsap.to(".plan-card", {
-        scrollTrigger: {
-          trigger: "#plans-container",
-          start: "top 70%",
-        },
-        opacity: 1,
-        y: 0,
-        stagger: 0.1,
-        duration: 0.6,
-        ease: "back.out(1.2)"
-      });
-      // Animação dos preços
-      gsap.from(".price-text", {
-        scrollTrigger: {
-          trigger: "#plans-container",
-          start: "top 60%",
-        },
-        textContent: 0,
-        duration: 1.5,
-        ease: "power1.out",
-        snap: { textContent: 1 },
-        stagger: 0.1,
-        delay: 0.5
-      });
-      // Animação dos itens de recursos
-      gsap.from(".feature-item", {
-        scrollTrigger: {
-          trigger: "#plans-container",
-          start: "top 50%",
-        },
-        opacity: 0,
-        x: -20,
-        stagger: 0.05,
-        duration: 0.4,
-        delay: 0.8
-      });
-      // Animação dos cards de recursos
-      gsap.to(".feature-card", {
-        scrollTrigger: {
-          trigger: "#features-container",
-          start: "top 70%",
-        },
-        opacity: 1,
-        y: 0,
-        stagger: 0.1,
-        duration: 0.6,
-        ease: "back.out(1.2)"
-      });
-      // Animação dos itens de FAQ
-      gsap.to(".faq-item", {
-        scrollTrigger: {
-          trigger: "#faq-container",
-          start: "top 80%",
-        },
-        opacity: 1,
-        y: 0,
-        stagger: 0.1,
-        duration: 0.6
-      });
+      // Animação dos cards de planos (protegido)
+      if (document.querySelector("#plans-container")) {
+        gsap.to(".plan-card", {
+          scrollTrigger: { trigger: "#plans-container", start: "top 70%" },
+          opacity: 1, y: 0, stagger: 0.1, duration: 0.6, ease: "back.out(1.2)"
+        });
+        gsap.from(".price-text", {
+          scrollTrigger: { trigger: "#plans-container", start: "top 60%" },
+          textContent: 0, duration: 1.5, ease: "power1.out", snap: { textContent: 1 }, stagger: 0.1, delay: 0.5
+        });
+        gsap.from(".feature-item", {
+          scrollTrigger: { trigger: "#plans-container", start: "top 50%" },
+          opacity: 0, x: -20, stagger: 0.05, duration: 0.4, delay: 0.8
+        });
+      }
+      // Animação dos cards de recursos (protegido)
+      if (document.querySelector("#features-container")) {
+        gsap.to(".feature-card", {
+          scrollTrigger: { trigger: "#features-container", start: "top 70%" },
+          opacity: 1, y: 0, stagger: 0.1, duration: 0.6, ease: "back.out(1.2)"
+        });
+      }
+      // Animação dos itens de FAQ (protegido)
+      if (document.querySelector("#faq-container")) {
+        gsap.to(".faq-item", {
+          scrollTrigger: { trigger: "#faq-container", start: "top 80%" },
+          opacity: 1, y: 0, stagger: 0.1, duration: 0.6
+        });
+      }
       // Efeito de hover nos botões de assinatura
       const buttons = document.querySelectorAll('.btn-subscribe');
       buttons.forEach(button => {
@@ -843,11 +812,16 @@ if($total_reg > 0) {
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const inner = document.getElementById('carousel-inner');
+  if (!inner) return; // Sem carrossel nesta página
+
   const slides = inner.children;
   const total = slides.length;
+  if (total === 0) return;
+
   let idx = 0;
   const interval = 5000;
   let timer;
+  let bullets = [];
 
   function show(i) {
     inner.style.transform = `translateX(-${i * 100}%)`;
@@ -857,18 +831,17 @@ document.addEventListener('DOMContentLoaded', () => {
   function next() { idx = (idx + 1) % total; show(idx); }
   function prev() { idx = (idx - 1 + total) % total; show(idx); }
 
-  // reset timer
   function reset() {
     clearInterval(timer);
     timer = setInterval(next, interval);
   }
 
-  // botões
-  document.getElementById('nextSlide').addEventListener('click', () => { next(); reset(); });
-  document.getElementById('prevSlide').addEventListener('click', () => { prev(); reset(); });
+  const btnNext = document.getElementById('nextSlide');
+  const btnPrev = document.getElementById('prevSlide');
+  if (btnNext) btnNext.addEventListener('click', () => { next(); reset(); });
+  if (btnPrev) btnPrev.addEventListener('click', () => { prev(); reset(); });
 
-  // bullets
-  const bullets = Array.from(document.querySelectorAll('.carousel-bullet'));
+  bullets = Array.from(document.querySelectorAll('.carousel-bullet'));
   bullets.forEach(b => {
     b.addEventListener('click', () => {
       idx = parseInt(b.dataset.index);
@@ -877,7 +850,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // inicia
   show(0);
   timer = setInterval(next, interval);
 });
@@ -1048,30 +1020,36 @@ document.addEventListener('DOMContentLoaded', () => {
       const increaseBtn = document.getElementById('increase-qty');
       const qtyInput = document.getElementById('product-qty');
       
-      decreaseBtn.addEventListener('click', function() {
-        let currentQty = parseInt(qtyInput.value);
-        if (currentQty > 1) {
-          qtyInput.value = currentQty - 1;
-        }
-      });
+      if (decreaseBtn && qtyInput) {
+        decreaseBtn.addEventListener('click', function() {
+          let currentQty = parseInt(qtyInput.value);
+          if (currentQty > 1) { qtyInput.value = currentQty - 1; }
+        });
+      }
       
-      increaseBtn.addEventListener('click', function() {
-        let currentQty = parseInt(qtyInput.value);
-        qtyInput.value = currentQty + 1;
-      });
+      if (increaseBtn && qtyInput) {
+        increaseBtn.addEventListener('click', function() {
+          let currentQty = parseInt(qtyInput.value);
+          qtyInput.value = currentQty + 1;
+        });
+      }
       
       // Simular adição ao carrinho
       const addToCartBtns = document.querySelectorAll('#modal-add-to-cart, #modal-add-to-cart-bottom');
       addToCartBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-          alert('Produto adicionado ao carrinho: ' + qtyInput.value + 'x Smartphone Galaxy A54');
+          const qty = qtyInput ? qtyInput.value : 1;
+          alert('Produto adicionado ao carrinho: ' + qty + 'x');
         });
       });
       
       // Simular compra rápida
-      document.getElementById('modal-buy-now').addEventListener('click', function() {
-        alert('Redirecionando para checkout...');
-      });
+      const buyNowBtn = document.getElementById('modal-buy-now');
+      if (buyNowBtn) {
+        buyNowBtn.addEventListener('click', function() {
+          alert('Redirecionando para checkout...');
+        });
+      }
     });
   </script>
 

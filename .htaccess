@@ -1,3 +1,61 @@
+# ============================================================================
+# SECURITY HARDENING - Added 2026-02-09 (Nexus Security Audit)
+# ============================================================================
+
+# Bloquear acesso a arquivos sensíveis
+<FilesMatch "^\.env$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "\.(sql|bak|backup|log|md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Desabilitar listagem de diretórios
+Options -Indexes
+
+# Proteção contra injeção de scripts em uploads
+<FilesMatch "\.(jpg|jpeg|png|gif|pdf|doc|docx)$">
+    Header set Content-Disposition "inline"
+    Header set X-Content-Type-Options "nosniff"
+</FilesMatch>
+
+# Headers de Segurança
+<IfModule mod_headers.c>
+    # Prevenir Clickjacking
+    Header always append X-Frame-Options SAMEORIGIN
+    
+    # Prevenir MIME sniffing
+    Header set X-Content-Type-Options "nosniff"
+    
+    # XSS Protection (navegadores antigos)
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # Referrer Policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # =========================================================================
+    # SPRINT 2 - HEADERS AVANÇADOS (Task 2.4)
+    # =========================================================================
+    
+    # Content Security Policy (CSP) - MODO PERMISSIVO (corrigido após Sprint 2)
+    # Permite recursos necessários para homepage + painéis
+    Header set Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; img-src 'self' data: blob: https: http:; font-src 'self' data: https: http:; frame-src 'self' https: http:; object-src 'none';"
+    
+    # Permissions Policy (Feature Policy) - Desabilitar recursos não utilizados
+    Header set Permissions-Policy "geolocation=(), microphone=(), camera=(), usb=(), payment=(), magnetometer=(), gyroscope=(), accelerometer=()"
+    
+    # HSTS (HTTP Strict Transport Security) - Forçar HTTPS em produção
+    # ATENÇÃO: Descomentar APENAS em produção com SSL ativo!
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+</IfModule>
+
+# ============================================================================
+# ROTAS DO SISTEMA (Original)
+# ============================================================================
+
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

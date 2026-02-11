@@ -148,8 +148,8 @@ $pdo->query("DELETE FROM logs where data < '$data_limpeza'");
 <script type="text/javascript">
 	// GRAFICO DE BARRAS
 function statistics1() {
-	var total_pagar = "<?=$total_meses_pagar_grafico?>";
-	var total_receber = "<?=$total_meses_receber_grafico?>";
+	var total_pagar = "<?=isset($total_meses_pagar_grafico) ? $total_meses_pagar_grafico : '0-0-0-0-0-0-0-0-0-0-0-0'?>";
+	var total_receber = "<?=isset($total_meses_receber_grafico) ? $total_meses_receber_grafico : '0-0-0-0-0-0-0-0-0-0-0-0'?>";
 
 	var split_pagar = total_pagar.split("-");
 	var split_receber = total_receber.split("-");

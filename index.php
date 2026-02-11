@@ -109,7 +109,8 @@ if($id_empresa == 0){
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CSS via CDN (produção: migrar para build compilado) -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -707,7 +708,8 @@ if($total_reg > 0) {
             ease: "power2.out"
           });
         });
-        // Animação dos cards de planos
+        // Animação dos cards de planos (protegido)
+        if (document.querySelector("#plans-container")) {
         gsap.to(".plan-card", {
           scrollTrigger: {
             trigger: "#plans-container",
@@ -744,7 +746,9 @@ if($total_reg > 0) {
           duration: 0.4,
           delay: 0.8
         });
+        } // fim if #plans-container
         // Animação dos cards de recursos
+        if (document.querySelector("#features-container")) {
         gsap.to(".feature-card", {
           scrollTrigger: {
             trigger: "#features-container",
@@ -756,7 +760,9 @@ if($total_reg > 0) {
           duration: 0.6,
           ease: "back.out(1.2)"
         });
+        } // fim if #features-container
         // Animação dos itens de FAQ
+        if (document.querySelector("#faq-container")) {
         gsap.to(".faq-item", {
           scrollTrigger: {
             trigger: "#faq-container",
@@ -767,6 +773,7 @@ if($total_reg > 0) {
           stagger: 0.1,
           duration: 0.6
         });
+        } // fim if #faq-container
       } else {
         // Desktop: garantir que todos os elementos sejam visíveis imediatamente
         document.addEventListener('DOMContentLoaded', function() {
@@ -829,8 +836,12 @@ if($total_reg > 0) {
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const inner = document.getElementById('carousel-inner');
+  if (!inner) return; // Sem carrossel nesta página
+  
   const slides = inner.children;
   const total = slides.length;
+  if (total === 0) return;
+  
   let idx = 0;
   const interval = 5000;
   let timer;
@@ -843,29 +854,29 @@ document.addEventListener('DOMContentLoaded', () => {
   function next() { idx = (idx + 1) % total; show(idx); }
   function prev() { idx = (idx - 1 + total) % total; show(idx); }
 
-  // reset timer
   function reset() {
     clearInterval(timer);
     timer = setInterval(next, interval);
   }
 
-  // botões
-  document.getElementById('nextSlide').addEventListener('click', () => { next(); reset(); });
-  document.getElementById('prevSlide').addEventListener('click', () => { prev(); reset(); });
+  const btnNext = document.getElementById('nextSlide');
+  const btnPrev = document.getElementById('prevSlide');
+  if (btnNext) btnNext.addEventListener('click', () => { next(); reset(); });
+  if (btnPrev) btnPrev.addEventListener('click', () => { prev(); reset(); });
 
-  // bullets dinâmicos
   const bulletsContainer = document.getElementById('carousel-bullets');
-  bulletsContainer.innerHTML = '';
-  for (let i = 0; i < total; i++) {
-    const b = document.createElement('button');
-    b.className = 'carousel-bullet w-3 h-3 rounded-full bg-white/50 hover:bg-white';
-    b.dataset.index = i.toString();
-    b.addEventListener('click', () => { idx = i; show(idx); reset(); });
-    bulletsContainer.appendChild(b);
+  if (bulletsContainer) {
+    bulletsContainer.innerHTML = '';
+    for (let i = 0; i < total; i++) {
+      const b = document.createElement('button');
+      b.className = 'carousel-bullet w-3 h-3 rounded-full bg-white/50 hover:bg-white';
+      b.dataset.index = i.toString();
+      b.addEventListener('click', () => { idx = i; show(idx); reset(); });
+      bulletsContainer.appendChild(b);
+    }
   }
   const bullets = Array.from(document.querySelectorAll('.carousel-bullet'));
 
-  // inicia
   show(0);
   timer = setInterval(next, interval);
 });

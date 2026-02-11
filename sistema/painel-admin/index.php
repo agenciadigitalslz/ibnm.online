@@ -319,6 +319,12 @@ if($linhas > 0){
 														<span class="side-menu__label" style="margin-left: 15px">Dados Site</span></a>
 													</li>
 
+													<li class="slide <?php echo @$seguranca ?>">
+													<a class="side-menu__item" href="seguranca">
+														<i class="fa fa-shield text-white"></i>
+														<span class="side-menu__label" style="margin-left: 15px">Segurança</span></a>
+													</li>
+
 
 
 

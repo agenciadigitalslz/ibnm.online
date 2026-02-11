@@ -122,6 +122,9 @@ if ($linhas == 0) {
 													              <span toggle="#password-field" class="fa fa-fw fa-eye field-icon toggle-password"></span>        
           														</div>
 
+          														<!-- Honeypot Anti-Bot (Sprint 2 - Task 2.1) -->
+          														<input type="text" name="website" id="website" value="" style="position:absolute;left:-9999px;width:1px;height:1px;" tabindex="-1" autocomplete="off">
+
           														 <div class="form-group" style="margin-left: 22px">
           														<span><input class="form-check-input" type="checkbox" value="Sim" name="salvar" id="salvar_acesso"></span>
           														 	<span class="control-label" style="margin-top:5px">Salvar Acesso</span>         							 	

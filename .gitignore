@@ -5,15 +5,38 @@
 # ==============================================================================
 # CREDENCIAIS E SEGURANÇA (CRÍTICO)
 # ==============================================================================
+# Arquivo de ambiente (Sprint 1 - 2026-02-09)
 .env
 .env.*
 !.env.example
-sistema/conexao.php
-**/conexao.php
+
+# Conexões antigas (removidas na Sprint 1)
+# sistema/conexao.php  → Agora usa .env
+# apiIgreja/conexao.php → Agora usa .env
+
+# MCP Tools
 mcp-mysql-local.json
+
+# FTP Quota
 .ftpquota
+
+# Documentação sensível
 MySQL.md
+
+# Arquivos temporários do Windows
 nul
+
+# Chaves SSH (se houver)
+*.pem
+*.key
+id_rsa*
+.ssh/
+
+# Certificados SSL
+*.crt
+*.cer
+*.p12
+*.pfx
 
 # ==============================================================================
 # LOGS E ARQUIVOS DE ERRO
@@ -39,6 +62,16 @@ php_errors.log
 *~
 backup/
 backups/
+
+# Dumps de banco de dados (CRÍTICO)
+*.sql
+*.sql.gz
+*.dump
+*.dump.gz
+
+# Exceto o schema oficial (permitir)
+!SQL/novo_igreja.sql
+!SQL/migrations/*.sql
 
 # ==============================================================================
 # IDEs E EDITORES
@@ -99,6 +132,19 @@ test_*.php
 debug_*.php
 *.debug
 phpinfo.php
+teste_*.html
+teste_*.php
+
+# ==============================================================================
+# SEGURANÇA - ARQUIVOS GERADOS (Sprint 2-4)
+# ==============================================================================
+# Logs de segurança com dados sensíveis
+security_logs_*.csv
+failed_logins_export_*.csv
+
+# Relatórios de auditoria temporários
+audit_report_*.pdf.tmp
+security_report_*.html.tmp
 
 # ==============================================================================
 # DOCUMENTAÇÃO GERADA TEMPORÁRIA

@@ -134,9 +134,11 @@
 	});
 
 
-	// ______________ PerfectScrollbar
-	const ps1 = new PerfectScrollbar('.sidebar-right', {
-		useBothWheelAxes:true,
-		suppressScrollX:true,
-	});
+	// ______________ PerfectScrollbar (protegido)
+	if (document.querySelector('.sidebar-right')) {
+		const ps1 = new PerfectScrollbar('.sidebar-right', {
+			useBothWheelAxes:true,
+			suppressScrollX:true,
+		});
+	}
 }(jQuery);

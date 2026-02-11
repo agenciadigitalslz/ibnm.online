@@ -13,7 +13,7 @@ O sistema tem como propósito principal oferecer uma solução tecnológica que 
 - **Arquitetura Multinível**: Suporte para igreja matriz e filiais com hierarquia definida
 - **Multiusuário**: Diferentes níveis de acesso com permissões personalizadas
 - **Responsivo**: Interface adaptada para diversos dispositivos
-- **Seguro**: Autenticação robusta e proteção de dados sensíveis
+- **Seguro**: 4 Sprints de Security Hardening (v7.00→v7.30) — Enterprise Grade, Defense in Depth
 - **Customizável**: Adaptável às necessidades específicas de cada igreja
 - **Modular**: Organizado em módulos independentes e integrados
 

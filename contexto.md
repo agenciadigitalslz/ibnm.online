@@ -1,4 +1,4 @@
-# Contexto Técnico — SaaS Igreja v6.0
+# Contexto Técnico — SaaS Igreja v7.40
 
 Documento de referência para manutenção, implementação de novas features e correções. Use este guia antes de alterar o sistema.
 
@@ -197,6 +197,47 @@ Futuramente serão incluídos na leitura inicial:
 - Ignorar o progresso atual do projeto
 - Assumir funcionalidades sem verificar a documentação
 - Trabalhar sem entender o contexto completo
+
+---
+---
+
+## 8. Security Hardening — Defense in Depth (v7.00→v7.30)
+
+**Status:** ✅ COMPLETO (4 Sprints — 10/02/2026)
+**Score:** Enterprise Grade
+
+### Sprints Concluídos
+| Sprint | Versão | Entregas Principais |
+|--------|--------|---------------------|
+| Sprint 1 | v7.00 | SQL Injection fix (PDO), `.env` (credenciais isoladas), `password_verify` (bcrypt), Apache hardening |
+| Sprint 2 | v7.10 | Honeypot, `RateLimiter.php`, `SessionFingerprint.php`, CSP/OWASP headers |
+| Sprint 3 | v7.20 | JWT library, `JWTManager.php`, `refresh_tokens` table, auth endpoints (token/logout/delete) |
+| Sprint 4 | v7.30 | `SecurityLogger.php` (13 eventos, 4 severidades), `Encryptor.php` (AES-256-CBC), `AlertManager.php`, LGPD delete-account, Dashboard de Segurança (Chart.js), 34/34 testes |
+
+### Camadas de Defesa
+```
+1. Apache Hardening (.htaccess)
+2. Honeypot (campo website_url)
+3. RateLimiter (IP tracking via failed_logins)
+4. CSP + OWASP Headers
+5. SessionFingerprint (hash IP+UA)
+6. password_verify (bcrypt)
+7. JWT Authentication (access + refresh tokens)
+8. SecurityLogger (auditoria avançada)
+9. Encryptor AES-256-CBC (CPF, dados sensíveis)
+10. AlertManager (thresholds automáticos)
+```
+
+### Arquivos de Segurança
+- `sistema/helpers/`: RateLimiter, SessionFingerprint, SecurityLogger, Encryptor, AlertManager, JWTManager
+- `sistema/painel-admin/paginas/seguranca.php`: Dashboard de segurança
+- `apiIgreja/auth/`: token.php, logout.php, delete-account.php
+- `apiIgreja/admin/estatisticas-seguranca.php`: API de métricas
+- Relatórios: `SPRINT_1_RELATORIO_FINAL.md` até `SPRINT_4_PLANEJAMENTO.md`
+
+### Testes
+- **34/34 testes** passando (Sprint 4)
+- Script: `teste_sprint4_completo.php`
 
 ---
 Este documento é vivo: ao alterar padrões, atualizar aqui. Para visão de produto (módulos/recursos), veja `README.md`.
